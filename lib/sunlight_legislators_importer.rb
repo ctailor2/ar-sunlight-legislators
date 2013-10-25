@@ -1,14 +1,27 @@
 require 'csv'
+require 'date'
+require_relative '../app/models/legislator'
 
 class SunlightLegislatorsImporter
   def self.import(filename)
-    csv = CSV.new(File.open(filename), :headers => true)
+    csv = CSV.new(File.open(filename), {:headers => true, :header_converters => :symbol})
     csv.each do |row|
+      field_names = []
+      data = []
       row.each do |field, value|
+        if field == :birthdate
+          puts "Yep, I'm here"
+          value.sub!(/(\d+)\/(\d+)\/(\d+)/, '\1-\2-\3')
+        end
+        field_names << field
+        data << value
         # TODO: begin
-        raise NotImplementedError, "TODO: figure out what to do with this row and do it!"
+        # raise NotImplementedError, "TODO: figure out what to do with this row and do it!"
         # TODO: end
       end
+      attribute_hash = Hash[field_names.zip(data)]
+      attribute_hash[:birthdate] = Date.parse(attribute_hash[:birthdate])
+      legislator = Legislator.create!(attribute_hash)
     end
   end
 end
